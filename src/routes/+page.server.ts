@@ -17,6 +17,7 @@ export function load({ cookies }) {
 
 export const actions = {
   create: async ({ cookies, request }) => {
+    await new Promise((fulfil) => setTimeout(fulfil, 1000));
     const data = await request.formData();
     const userid = cookies.get("userid");
     const descdata: FormDataEntryValue | null = data.get("description");
@@ -37,12 +38,22 @@ export const actions = {
   },
 
   delete: async ({ cookies, request }) => {
+    await new Promise((fulfil) => setTimeout(fulfil, 500));
     const data = await request.formData();
     const userid = cookies.get('userid');
     const dataid: FormDataEntryValue | null = data.get('id');
-    if (userid && dataid) {
-      const id = `${dataid}`;
-      db.deleteTodo(userid, id);
+    try {
+      if (userid && dataid) {
+        const id = `${dataid}`;
+        db.deleteTodo(userid, id);
+        return { message: "delete one todo" };
+      } else {
+        throw new Error('can not find userid or description');
+      }
+    } catch (error: any) {
+      return fail(422, {
+        error: error.message
+      });
     }
   }
 } satisfies Actions;

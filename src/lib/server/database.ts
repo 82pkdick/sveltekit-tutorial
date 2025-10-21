@@ -1,12 +1,14 @@
+import type { Todo } from '$lib/types/todo'
+
 // In a real app, this data would live in a database,
 // rather than in memory. But for now, we cheat.
 const db = new Map();
 
-type Todo = {
-	id: string;
-	description: string;
-	done: boolean;
-};
+// type Todo = {
+// 	id: string;
+// 	description: string;
+// 	done: boolean;
+// };
 
 export function getTodos(userid: string) {
 	if (!db.get(userid)) {

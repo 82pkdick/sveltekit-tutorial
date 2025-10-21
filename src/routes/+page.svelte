@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData, ActionData } from "./$types";
+  import type { Todo } from "$lib/types/todo";
   import { fly, slide } from "svelte/transition";
   import { enhance } from "$app/forms";
 
@@ -9,6 +10,11 @@
   }
 
   let { data, form }: Props = $props();
+
+  let todos: Todo[] = $state([]);
+
+  let creating = $state(false);
+  let deleting: string[] = $state([]);
 
   let serverMessage = $state("");
   let messageClass: string | null = $state(null);
@@ -30,6 +36,7 @@
       serverMessage = "";
       messageClass = null;
     }, 2000);
+    todos = data.todos;
   });
 </script>
 
@@ -40,17 +47,46 @@
     <p class={messageClass ? messageClass : ""}>{serverMessage}</p>
   {/if}
 
-  <form method="POST" action="?/create" use:enhance>
+  {#if creating}
+    <span class="saving">saving...</span>
+  {/if}
+
+  <form
+    method="POST"
+    action="?/create"
+    use:enhance={() => {
+      creating = true;
+      return async ({ update }) => {
+        await update();
+        creating = false;
+      };
+    }}
+  >
     <label>
       add a todo:
-      <input type="text" name="description" autocomplete="off" />
+      <input
+        type="text"
+        name="description"
+        autocomplete="off"
+        disabled={creating}
+      />
     </label>
   </form>
 
   <ul class="todos">
-    {#each data.todos as todo (todo.id)}
+    {#each todos.filter((todo) => !deleting.includes(todo.id)) as todo (todo.id)}
       <li in:fly={{ y: 20 }} out:slide>
-        <form method="POST" action="?/delete" use:enhance>
+        <form
+          method="POST"
+          action="?/delete"
+          use:enhance={() => {
+            deleting = [...deleting, todo.id];
+            return async ({ update }) => {
+              await update();
+              deleting = deleting.filter((id) => id !== todo.id);
+            };
+          }}
+        >
           <input type="hidden" name="id" value={todo.id} />
           <span>{todo.description}</span>
           <button aria-label="Mark as complete"></button>
@@ -101,7 +137,8 @@
     color: green;
   }
 
-  // .saving {
-  // 	opacity: 0.5;
-  // }
+  .saving {
+    opacity: 0.5;
+    color: teal;
+  }
 </style>
