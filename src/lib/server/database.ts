@@ -21,6 +21,10 @@ export function getTodos(userid: string) {
 }
 
 export function createTodo(userid: string, description: string) {
+	if (!userid) {
+		return;
+	}
+
 	const todos: Todo[] = db.get(userid);
 
 	todos.push({
@@ -28,11 +32,6 @@ export function createTodo(userid: string, description: string) {
 		description,
 		done: false
 	});
-
-	// todos.forEach(todo => {
-	// 	console.log('A01: ', console.log("typeof todo: ", typeof todo));
-	// 	console.log('A02: ', console.log("todo: ", JSON.stringify(todo)));
-	// });
 }
 
 export function deleteTodo(userid: string, todoid: string) {
