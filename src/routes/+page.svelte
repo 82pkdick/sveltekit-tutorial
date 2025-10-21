@@ -1,10 +1,42 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
-  let { data }: { data: PageData } = $props();
+  import type { PageData, ActionData } from "./$types";
+
+  interface Props {
+    data: PageData;
+    form: ActionData;
+  }
+
+  let { data, form }: Props = $props();
+
+  let serverMessage = $state("");
+  let messageClass: string | null = $state(null);
+
+  const setResultMessage = () => {
+    if (form?.error) {
+      serverMessage = form.error;
+      messageClass = "error";
+    }
+    if (form?.message) {
+      serverMessage = form.message;
+      messageClass = "success";
+    }
+  };
+
+  $effect(() => {
+    setResultMessage();
+    setTimeout(() => {
+      serverMessage = "";
+      messageClass = null;
+    }, 2000);
+  });
 </script>
 
 <div class="centered">
   <h1>todos</h1>
+
+  {#if serverMessage}
+    <p class={messageClass ? messageClass : ""}>{serverMessage}</p>
+  {/if}
 
   <form method="POST" action="?/create">
     <label>
@@ -57,6 +89,14 @@
 
   button:hover {
     opacity: 1;
+  }
+
+  .error {
+    color: firebrick;
+  }
+
+  .success {
+    color: green;
   }
 
   // .saving {

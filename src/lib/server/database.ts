@@ -22,10 +22,18 @@ export function getTodos(userid: string) {
 
 export function createTodo(userid: string, description: string) {
 	if (!userid) {
-		return;
+		throw new Error('can not find userid');
+	}
+
+	if (description === '') {
+		throw new Error('todo must have a description');
 	}
 
 	const todos: Todo[] = db.get(userid);
+
+	if (todos.find((todo) => todo.description === description)) {
+		throw new Error('todos must be unique');
+	}
 
 	todos.push({
 		id: crypto.randomUUID(),

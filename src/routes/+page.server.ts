@@ -1,3 +1,5 @@
+import type { Actions } from './$types';
+import { fail } from '@sveltejs/kit';
 import * as db from "$lib/server/database.js";
 
 export function load({ cookies }) {
@@ -18,9 +20,19 @@ export const actions = {
     const data = await request.formData();
     const userid = cookies.get("userid");
     const descdata: FormDataEntryValue | null = data.get("description");
-    if (userid && descdata) {
-      const description = `${descdata}`;
-      db.createTodo(userid, description);
+    const description = `${descdata}`;
+    try {
+      if (userid && descdata) {
+        db.createTodo(userid, description);
+        return { message: "create todo success!" };
+      } else {
+        throw new Error('can not find userid or description');
+      }
+    } catch (error: any) {
+      return fail(422, {
+        description: description,
+        error: error.message
+      });
     }
   },
 
@@ -33,4 +45,4 @@ export const actions = {
       db.deleteTodo(userid, id);
     }
   }
-};
+} satisfies Actions;
