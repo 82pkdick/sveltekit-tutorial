@@ -2,42 +2,112 @@
   import type { PageData, ActionData } from "./$types";
   import type { Todo } from "$lib/types/todo";
   import { fly, slide } from "svelte/transition";
-  import { enhance } from "$app/forms";
+  // import { enhance } from "$app/forms";
 
   interface Props {
     data: PageData;
     form: ActionData;
   }
 
-  let { data, form }: Props = $props();
+  // let { data, form }: Props = $props();
+  let { data }: Props = $props();
+
+  // console.log("A01: ", data.todos);
 
   let todos: Todo[] = $state([]);
 
   let creating = $state(false);
-  let deleting: string[] = $state([]);
+  // let deleting: string[] = $state([]);
 
   let serverMessage = $state("");
   let messageClass: string | null = $state(null);
 
-  const setResultMessage = () => {
-    if (form?.error) {
-      serverMessage = form.error;
+  const setResultMessage = ({
+    success,
+    message,
+  }: {
+    success: boolean;
+    message: string;
+  }) => {
+    serverMessage = message;
+    if (success) {
+      messageClass = "success";
+    } else {
       messageClass = "error";
     }
-    if (form?.message) {
-      serverMessage = form.message;
-      messageClass = "success";
-    }
-  };
 
-  $effect(() => {
-    setResultMessage();
     setTimeout(() => {
       serverMessage = "";
       messageClass = null;
-    }, 2000);
+    }, 3000);
+  };
+
+  $effect(() => {
     todos = data.todos;
   });
+
+  const addTodo = async (description: string) => {
+    creating = true;
+    try {
+      const response = await fetch("/todo", {
+        method: "POST",
+        body: JSON.stringify({ description }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const { id, ok, message } = await response.json();
+
+      if (ok) {
+        const todos = [
+          ...data.todos,
+          {
+            id,
+            description,
+            done: false,
+          },
+        ];
+
+        data = { ...data, todos };
+        setResultMessage({ success: true, message });
+      } else {
+        throw new Error(message);
+      }
+    } catch (error: any) {
+      setResultMessage({ success: false, message: `Error: ${error.message}` });
+    } finally {
+      creating = false;
+    }
+  };
+
+  const toggleTodo = async (todoid: string, done: boolean) => {
+    try {
+      await fetch(`/todo/${todoid}`, {
+        method: "PUT",
+        body: JSON.stringify({ done }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error: any) {
+      setResultMessage({ success: false, message: `Error: ${error.message}` });
+    }
+  };
+
+  const deleteTodo = async (todoid: string) => {
+    try {
+      await fetch(`/todo/${todoid}`, {
+        method: "DELETE",
+      });
+
+      const todos = data.todos.filter((t) => t.id !== todoid);
+
+      data = { ...data, todos };
+    } catch (error: any) {
+      setResultMessage({ success: false, message: `Error: ${error.message}` });
+    }
+  };
 </script>
 
 <div class="centered">
@@ -51,46 +121,46 @@
     <span class="saving">saving...</span>
   {/if}
 
-  <form
-    method="POST"
-    action="?/create"
-    use:enhance={() => {
-      creating = true;
-      return async ({ update }) => {
-        await update();
-        creating = false;
-      };
-    }}
-  >
-    <label>
-      add a todo:
-      <input
-        type="text"
-        name="description"
-        autocomplete="off"
-        disabled={creating}
-      />
-    </label>
-  </form>
+  <label>
+    add a todo:
+    <input
+      type="text"
+      autocomplete="off"
+      onkeydown={async (e) => {
+        if (e.key !== "Enter") {
+          return;
+        }
+
+        const input = e.currentTarget;
+        const description = input.value;
+
+        await addTodo(description);
+
+        input.value = "";
+      }}
+    />
+  </label>
 
   <ul class="todos">
-    {#each todos.filter((todo) => !deleting.includes(todo.id)) as todo (todo.id)}
-      <li in:fly={{ y: 20 }} out:slide>
-        <form
-          method="POST"
-          action="?/delete"
-          use:enhance={() => {
-            deleting = [...deleting, todo.id];
-            return async ({ update }) => {
-              await update();
-              deleting = deleting.filter((id) => id !== todo.id);
-            };
-          }}
-        >
-          <input type="hidden" name="id" value={todo.id} />
+    {#each todos as todo (todo.id)}
+      <li>
+        <label>
+          <input
+            type="checkbox"
+            checked={todo.done}
+            onchange={async (e) => {
+              const done = e.currentTarget.checked;
+              await toggleTodo(todo.id, done);
+            }}
+          />
           <span>{todo.description}</span>
-          <button aria-label="Mark as complete"></button>
-        </form>
+          <button
+            aria-label="Mark as complete"
+            onclick={async (e) => {
+              await deleteTodo(todo.id);
+            }}
+          ></button>
+        </label>
       </li>
     {/each}
   </ul>
@@ -103,10 +173,11 @@
   }
 
   label {
+    display: flex;
     width: 100%;
   }
 
-  input {
+  input[type="text"] {
     flex: 1;
   }
 

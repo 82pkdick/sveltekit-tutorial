@@ -4,51 +4,53 @@ import type { Todo } from '$lib/types/todo'
 // rather than in memory. But for now, we cheat.
 const db = new Map();
 
-// type Todo = {
-// 	id: string;
-// 	description: string;
-// 	done: boolean;
-// };
-
 export function getTodos(userid: string) {
-	if (!db.get(userid)) {
-		db.set(userid, [{
-			id: crypto.randomUUID(),
-			description: 'Learn SvelteKit',
-			done: false
-		}]);
+	if (!db.has(userid)) {
+		createTodo({ userid, description: `Learn about API routes` })
 	}
 
-	return db.get(userid);
+	const todos: Todo[] = Array.from(db.get(userid).values());
+	return todos;
 }
 
-export function createTodo(userid: string, description: string) {
-	if (!userid) {
-		throw new Error('can not find userid');
+export function createTodo({ userid, description }: {userid: string, description: string}) {
+	if (!db.has(userid)) {
+		db.set(userid, new Map());
 	}
 
-	if (description === '') {
-		throw new Error('todo must have a description');
-	}
+	const todos: Map<string, Todo> = db.get(userid);
 
-	const todos: Todo[] = db.get(userid);
+	todos.forEach((todo, id) => {
+		if (todo && (todo.description === description)) {
+			console.error('[lib/server/database.ts]: todos must be unique');
+      throw new Error('todos must be unique');
+		}
+	});
 
-	if (todos.find((todo) => todo.description === description)) {
-		throw new Error('todos must be unique');
-	}
+	const id = crypto.randomUUID();
 
-	todos.push({
-		id: crypto.randomUUID(),
+	todos.set(id, {
+		id,
 		description,
 		done: false
-	});
+	})
+
+	return { id };
 }
 
-export function deleteTodo(userid: string, todoid: string) {
-	const todos: Todo[] = db.get(userid);
-	const index = todos.findIndex((todo) => todo.id === todoid);
+export function toggleTodo({ userid, id, done }:  {userid: string, id: string, done: boolean}) {
+	const todos: Map<string, Todo> = db.get(userid);
+	let todo = todos.get(id);
+	if (todo && todo.done) {
+		todo.done = done;
+	}
+}
 
-	if (index !== -1) {
-		todos.splice(index, 1);
+export function deleteTodo({ userid, id }: {userid: string, id: string}) {
+	const todos: Map<string, Todo> = db.get(userid);
+	const todo = todos.get(id);
+
+	if (todo) {
+		todos.delete(id);
 	}
 }
