@@ -5,7 +5,7 @@ html {
   --fg-1: #212121;
   --fg-2: #4d4d4d;
   --link: #1c7ed4;
-  --link-hover: #3492e5;
+  --link-hover: peru;
   --link-active: #176bb5
 }
 
@@ -68,7 +68,8 @@ label {
 }
 
 a {
-  color: var(--link)
+  color: var(--link);
+  text-decoration: none;
 }
 
 a:hover {
