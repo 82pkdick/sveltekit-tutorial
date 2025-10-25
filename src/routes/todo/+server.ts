@@ -3,7 +3,7 @@ import { json } from "@sveltejs/kit";
 import * as database from "$lib/server/database.js";
 
 export async function POST({ request, cookies }) {
-  await new Promise((fulfil) => setTimeout(fulfil, 3000));
+  // await new Promise((fulfil) => setTimeout(fulfil, 3000));
   try {
     let { description } = await request.json();
 

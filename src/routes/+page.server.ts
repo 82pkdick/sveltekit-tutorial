@@ -3,7 +3,7 @@ import { fail } from '@sveltejs/kit';
 import * as db from "$lib/server/database.js";
 
 export async function load({ cookies }) {
-  await new Promise((fulfil) => setTimeout(fulfil, 2000));
+  // await new Promise((fulfil) => setTimeout(fulfil, 2000));
 
   let userid = cookies.get("userid");
 
