@@ -1,3 +1,3 @@
-// export function load() {
-//   throw new Error('yikes');
-// }
+export function load() {
+  throw new Error('yikes');
+}
