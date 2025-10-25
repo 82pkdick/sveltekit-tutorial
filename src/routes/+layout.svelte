@@ -19,6 +19,17 @@
   {#if navigating.to}
     <span class="navigating">navigating to {navigating.to.url.pathname}</span>
   {/if}
+
+  <a
+    href="/expected"
+    aria-current={page.url.pathname === "/expected" ? true : false}
+    >expected error</a
+  >
+  <a
+    href="/unexpected"
+    aria-current={page.url.pathname === "/unexpected" ? true : false}
+    >unexpected error</a
+  >
 </nav>
 
 {@render children?.()}

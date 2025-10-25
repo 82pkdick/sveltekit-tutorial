@@ -1,4 +1,5 @@
 import type { Todo } from '$lib/types/todo'
+// import { error } from '@sveltejs/kit';
 
 // In a real app, this data would live in a database,
 // rather than in memory. But for now, we cheat.
@@ -24,6 +25,7 @@ export function createTodo({ userid, description }: {userid: string, description
 		if (todo && (todo.description === description)) {
 			console.error('[lib/server/database.ts]: todos must be unique');
       throw new Error('todos must be unique');
+			// error(420, 'todos must be unique');
 		}
 	});
 
