@@ -20,6 +20,8 @@
     <span class="navigating">navigating to {navigating.to.url.pathname}</span>
   {/if}
 
+  <a href="/a" aria-current={page.url.pathname === "/a" ? true : false}>Page A</a>
+
   <a
     href="/expected"
     aria-current={page.url.pathname === "/expected" ? true : false}
