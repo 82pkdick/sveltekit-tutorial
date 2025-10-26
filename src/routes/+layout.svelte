@@ -1,6 +1,6 @@
 <script lang="ts">
   import favicon from "$lib/assets/favicon.svg";
-  import { page, navigating, updated } from "$app/state";
+  import { page } from "$app/state";
 
   let { children } = $props();
 </script>
@@ -16,42 +16,15 @@
     about
   </a>
 
-  {#if navigating.to}
-    <span class="navigating">navigating to {navigating.to.url.pathname}</span>
-  {/if}
+  <a href="/the-good-place" aria-current={page.url.pathname === "/the-good-place" ? true : false}>the good place</a>
 
-  <a href="/a" aria-current={page.url.pathname === "/a" ? true : false}>Page A</a>
-
-  <a
-    href="/expected"
-    aria-current={page.url.pathname === "/expected" ? true : false}
-    >expected error</a
-  >
-  <a
-    href="/unexpected"
-    aria-current={page.url.pathname === "/unexpected" ? true : false}
-    >unexpected error</a
-  >
+  <a href="/the-bad-place" aria-current={page.url.pathname === "/the-bad-place" ? true : false}>the good place</a>
 </nav>
 
 {@render children?.()}
 
-{#if updated.current}
-  <div class="toast">
-    <p>
-      A new version of the app is available
-
-      <button onclick={() => location.reload()}> reload the page </button>
-    </p>
-  </div>
-{/if}
-
 <style lang="scss">
   a[aria-current="true"] {
     color: maroon;
-  }
-
-  .navigating {
-    color: dodgerblue;
   }
 </style>
